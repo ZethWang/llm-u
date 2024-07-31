@@ -13,7 +13,7 @@ from langchain_core.output_parsers import StrOutputParser
 _ = load_dotenv(find_dotenv())    # read local .env file
 ZHIPU_api_key=os.environ['ZHIPUAI_API_KEY']
 
-def generate_response(input_text):
+def generate_response(input_text,ZHIPU_api_key:str):
     llm = ChatZhipuAI(temperature=0.7,ZHIPU_api_key=ZHIPU_api_key)
     output = llm.invoke(input_text)
     output_parser = StrOutputParser()
@@ -34,7 +34,7 @@ def get_vectordb():
     # 定义 Embeddings
     embedding = ZhipuAIEmbeddings()
     # 向量数据库持久化路径
-    persist_directory = 'data_base/vector_db/chroma'
+    persist_directory = '../../data_base/vector_db/chroma'
     # 加载数据库
     vectordb = Chroma(
         persist_directory=persist_directory,  # 允许我们将persist_directory目录保存到磁盘上
@@ -82,21 +82,33 @@ def get_qa_chain(question:str,ZHIPU_api_key:str):
 
 # Streamlit 应用程序界面
 def main():
-    st.title('🦜🔗 动手学大模型应用开发')
-    ZHIPU_api_key = st.sidebar.text_input('ZhiPu API Key', type='password')
+    st.title('🤣🤞有多少人工就有多少智障💪')
+    st.header('GLM-4-Flash')
+    ZHIPU_api_key = st.sidebar.text_input('ZhiPu API Key', type='password',value="已给出")
 
   
     # 用于跟踪对话历史
     if 'messages' not in st.session_state:
         st.session_state.messages = []
 
-    messages = st.container(height=300)
+    selected_method = st.radio(
+        "你想选择哪种模式进行对话？",
+        ["None", "qa_chain", "chat_qa_chain"],
+        captions = ["无RetrievalQA的普通模式", "不带memory的RetrievalQA模式", "带memory的RetrievalQA模式"])
+
+   
+    messages = st.container(height=400)
     if prompt := st.chat_input("Say something"):
         # 将用户输入添加到对话历史中
         st.session_state.messages.append({"role": "user", "text": prompt})
 
-        # 调用 respond 函数获取回答
-        answer = generate_response(prompt)
+        if selected_method == "None":
+            answer = generate_response(prompt,ZHIPU_api_key)
+        elif selected_method == "qa_chain":
+            answer = get_qa_chain(prompt,ZHIPU_api_key)
+        elif selected_method == "chat_qa_chain":
+            answer = get_chat_qa_chain(prompt,ZHIPU_api_key)
+
         # 检查回答是否为 None
         if answer is not None:
             # 将LLM的回答添加到对话历史中
@@ -109,10 +121,7 @@ def main():
             elif message["role"] == "assistant":
                 messages.chat_message("assistant").write(message["text"])   
 
-        selected_method = st.radio(
-        "你想选择哪种模式进行对话？",
-        ["None", "qa_chain", "chat_qa_chain"],
-        captions = ["不使用检索问答的普通模式", "不带历史记录的检索问答模式", "带历史记录的检索问答模式"])
+        
 
 
 
