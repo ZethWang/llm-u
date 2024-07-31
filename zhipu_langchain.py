@@ -75,3 +75,7 @@ qa = ConversationalRetrievalChain.from_llm(
 question = "我可以学习到关于提示工程的知识吗？"
 result = qa({"question": question})
 print(result['answer'])
+
+question = "为什么这门课需要教这方面的知识？"
+result = qa({"question": question})
+print(result['answer'])
