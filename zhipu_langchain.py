@@ -7,6 +7,8 @@ from langchain.chains import RetrievalQA
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import ZhipuAIEmbeddings
 from langchain.memory import ConversationBufferMemory
+from langchain.chains import ConversationalRetrievalChain
+
 _ =load_dotenv(find_dotenv())
 ZHIPUAI_API_KEY = os.getenv("ZHIPUAI_API_KEY")
 
@@ -60,3 +62,16 @@ memory = ConversationBufferMemory(
     memory_key="chat_history",  # 与 prompt 的输入变量保持一致。
     return_messages=True  # 将以消息列表的形式返回聊天记录，而不是单个字符串
 )
+
+
+
+retriever=vectordb.as_retriever()
+
+qa = ConversationalRetrievalChain.from_llm(
+    llm,
+    retriever=retriever,
+    memory=memory
+)
+question = "我可以学习到关于提示工程的知识吗？"
+result = qa({"question": question})
+print(result['answer'])
